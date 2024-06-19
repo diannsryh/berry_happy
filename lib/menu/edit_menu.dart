@@ -198,7 +198,7 @@ class _EditMenuState extends State<EditMenu> {
                                   height: 150,
                                   child: galleryFile == null
                                       ? (widget.menu.imageUrl != null && widget.menu.imageUrl!.isNotEmpty
-                                          ? Image.network("${Endpoints.baseUAS}/static/img/${widget.menu.imageUrl}")
+                                          ? Image.network('${Endpoints.baseUAS}/static/storages/${widget.menu.imageUrl}')
                                           : Center(
                                               child: Row(
                                                 mainAxisAlignment: MainAxisAlignment.center,

@@ -1,4 +1,6 @@
+import 'package:berry_happy/cubit/cart/cart_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -30,6 +32,27 @@ class _CartScreenState extends State<CartScreen> {
             },
           ),
         ],
+      ),
+      body: BlocBuilder<CartCubit, CartState>(
+        bloc: context.read<CartCubit>(),
+        builder: (context, state) {
+          if (state is SelectedItems) {
+            final selectedItems = state.selectedItems;
+            return ListView.builder(
+              itemCount: selectedItems.length,
+              itemBuilder: (context, index) {
+                final item = selectedItems[index];
+                return ListTile(
+                  title: Text(item.menuName),
+                  subtitle: Text('${item.menuPrice}'),
+                  // ... add other item details as needed
+                );
+              },
+            );
+          } else {
+            return const Text('Unexpected state'); // Handle unexpected states
+          }
+        },
       ),
       bottomNavigationBar: Container(
         padding: EdgeInsets.all(10.0),

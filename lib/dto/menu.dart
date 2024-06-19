@@ -5,7 +5,7 @@ class Menu {
   final int menuPrice;
   final String kategori;
   final String imageUrl;
-   // Menambahkan properti kategori
+  // Menambahkan properti kategori
 
   Menu({
     required this.idMenu,

@@ -1,9 +1,11 @@
 import 'package:berry_happy/components/customsearch.dart';
+import 'package:berry_happy/cubit/cubit/auth_cubit.dart';
 import 'package:berry_happy/dto/menu.dart';
 import 'package:berry_happy/endpoints/endpoints.dart';
 import 'package:berry_happy/menu/add_menu.dart';
 import 'package:berry_happy/menu/edit_menu.dart'; // Import the EditMenu page
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:berry_happy/services/data_service.dart';
 
@@ -50,14 +52,45 @@ class _DashboardOwnerState extends State<DashboardOwner> {
 
   @override
   Widget build(BuildContext context) {
+    final authCubit = BlocProvider.of<AuthCubit>(context);
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 255, 204, 229),
+        title: Text('Berry Happy'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 255, 204, 229),
+              ),
+              child: Text(
+                'Berry Happy',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Logout"),
+              onTap: () {
+                authCubit.logout();
+                Navigator.pushReplacementNamed(context, '/login-screen');
+              },
+            ),
+          ],
+        ),
+      ),
       body: SingleChildScrollView(
         child: Container(
           color: const Color.fromARGB(255, 255, 204, 229),
           child: Column(
             children: [
-              const SizedBox(height: 50),
-              // const Divider(color: Colors.white),
+              const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: CustomSearchBox(
@@ -66,30 +99,6 @@ class _DashboardOwnerState extends State<DashboardOwner> {
                     onClear: (value) => _fetchData(currentPage),
                     hintText: 'search'),
               ),
-              // Search Bar
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(horizontal: 18),
-              //   child: Container(
-              //     height: 55.0,
-              //     decoration: BoxDecoration(
-              //       color: Colors.white,
-              //       borderRadius: BorderRadius.circular(30.0),
-              //     ),
-              //     child: TextField(
-              //       decoration: InputDecoration(
-              //         fillColor: const Color.fromARGB(255, 224, 224, 224),
-              //         hintText: 'Search...',
-              //         hintStyle: GoogleFonts.poppins(fontSize: 16),
-              //         border: OutlineInputBorder(
-              //           borderRadius: BorderRadius.circular(30),
-              //           borderSide: const BorderSide(
-              //               color: Color.fromARGB(255, 122, 122, 122)),
-              //         ),
-              //         prefixIcon: const Icon(Icons.search, size: 35),
-              //       ),
-              //     ),
-              //   ),
-              // ),
 
               const Divider(color: Colors.white),
 
@@ -136,54 +145,44 @@ class _DashboardOwnerState extends State<DashboardOwner> {
                 ),
               ),
               const SizedBox(height: 30),
-              // const Divider(color: Colors.white),
-
-              // Total Order Display
-              // Padding(
-              //   padding: const EdgeInsets.only(
-              //       top: 5, bottom: 5, left: 65, right: 65),
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //     children: [
-              //       Column(
-              //         children: [
-              //           Text(
-              //             "Rp.69.000",
-              //             style: GoogleFonts.poppins(
-              //                 fontWeight: FontWeight.bold, fontSize: 20),
-              //           ),
-              //           Text(
-              //             "Total Income",
-              //             style: GoogleFonts.poppins(
-              //                 fontSize: 16, fontWeight: FontWeight.normal),
-              //           ),
-              //         ],
-              //       ),
-              //     ],
-              //   ),
-              // ),
-              // Menu List Container
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                 margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Color.fromARGB(255, 255, 204, 229),
                   borderRadius: BorderRadius.circular(30.0),
                 ),
                 child: FutureBuilder<List<Menu>>(
-                    future: _menu,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final data = snapshot.data!;
-                        return ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: data.length,
-                            itemBuilder: (context, index) {
-                              final item = data[index];
-                              return Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Row(
+                  future: _menu,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      final data = snapshot.data!;
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          final item = data[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 10),
+                            padding: const EdgeInsets.all(20.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10.0),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 2,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
@@ -191,27 +190,33 @@ class _DashboardOwnerState extends State<DashboardOwner> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text('${item.menuName}',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 20,
-                                                color: const Color.fromARGB(
-                                                    255, 36, 31, 31),
-                                                fontWeight: FontWeight.bold,
-                                              )),
-                                          Text('Rp. ${item.menuPrice}',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 16,
-                                                color: const Color.fromARGB(
-                                                    255, 36, 31, 31),
-                                                fontWeight: FontWeight.bold,
-                                              )),
-                                          Text('${item.descMenu}',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 14,
-                                                color: const Color.fromARGB(
-                                                    255, 36, 31, 31),
-                                                fontWeight: FontWeight.normal,
-                                              )),
+                                          Text(
+                                            '${item.menuName}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 20,
+                                              color: const Color.fromARGB(
+                                                  255, 36, 31, 31),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Rp. ${item.menuPrice}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: const Color.fromARGB(
+                                                  255, 36, 31, 31),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${item.descMenu}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              color: const Color.fromARGB(
+                                                  255, 36, 31, 31),
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -219,77 +224,87 @@ class _DashboardOwnerState extends State<DashboardOwner> {
                                       Padding(
                                         padding:
                                             const EdgeInsets.only(left: 16.0),
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          child: Image.network(
-                                            fit: BoxFit.cover,
-                                            width: 100,
-                                            height: 100,
-                                            Uri.parse(
-                                                    '${Endpoints.baseUAS}/static/storages/${item.imageUrl!}')
-                                                .toString(),
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
+                                        child: Column(
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              child: Image.network(
+                                                fit: BoxFit.cover,
+                                                width: 100,
+                                                height: 100,
+                                                Uri.parse(
+                                                        '${Endpoints.baseUAS}/static/storages/${item.imageUrl!}')
+                                                    .toString(),
+                                                errorBuilder: (context, error,
+                                                        stackTrace) =>
                                                     const Icon(Icons.error),
-                                          ),
+                                              ),
+                                            ),
+                                            Row(
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(Icons.edit,
+                                                      color: Colors.blue),
+                                                  onPressed: () {
+                                                    _editMenu(item);
+                                                  },
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.delete,
+                                                      color: Colors.red),
+                                                  onPressed: () {
+                                                    // Handle delete action
+                                                    _deleteMenu(item.idMenu);
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    Column(
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.edit,
-                                              color: Colors.blue),
-                                          onPressed: () {
-                                            _editMenu(item);
-                                          },
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete,
-                                              color: Colors.red),
-                                          onPressed: () {
-                                            // Handle delete action
-                                            _deleteMenu(item.idMenu);
-                                          },
-                                        ),
-                                      ],
-                                    ),
                                   ],
                                 ),
-                              );
-                            });
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('${snapshot.error}'));
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    }),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('${snapshot.error}'));
+                    }
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                ),
               ),
 
               // Increment and Decrement Page Buttons
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        iconColor: Color.fromARGB(255, 255, 204, 229)
-                      ),
                       onPressed: _decrementPage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink,
+                      ),
                       child: Text(
                         "Previous Page",
-                        style: GoogleFonts.poppins(fontSize: 16),
+                        style: GoogleFonts.poppins(
+                            fontSize: 15, color: Colors.white),
                       ),
                     ),
                     const SizedBox(width: 16),
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        iconColor: Color.fromARGB(255, 255, 204, 229)
-                      ),
                       onPressed: _incrementPage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink,
+                      ),
                       child: Text(
                         "Next Page",
-                        style: GoogleFonts.poppins(fontSize: 16),
+                        style: GoogleFonts.poppins(
+                            fontSize: 15, color: Colors.white),
                       ),
                     ),
                   ],

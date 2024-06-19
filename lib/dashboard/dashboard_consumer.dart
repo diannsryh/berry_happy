@@ -1,10 +1,12 @@
 import 'package:berry_happy/cart/cart_screen.dart';
 import 'package:berry_happy/components/customsearch.dart';
-import 'package:berry_happy/dashboard/dashboard_owner.dart';
+import 'package:berry_happy/cubit/cart/cart_cubit.dart';
+import 'package:berry_happy/cubit/cubit/auth_cubit.dart';
 import 'package:berry_happy/dto/menu.dart';
 import 'package:berry_happy/endpoints/endpoints.dart';
 import 'package:berry_happy/services/data_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class DashboardConsumer extends StatefulWidget {
@@ -19,6 +21,8 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
   late TextEditingController _searchController;
   int currentPage = 1;
 
+  final cartCubit = CartCubit();
+
   @override
   void initState() {
     super.initState();
@@ -29,9 +33,11 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
   @override
   void dispose() {
     _searchController.dispose();
+    cartCubit.close();
     super.dispose();
   }
 
+//pagenation
   void _fetchData(int page) {
     setState(() {
       _menu = DataService.fetchMenu1(currentPage, _searchController.text);
@@ -54,6 +60,7 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
     }
   }
 
+//method untuk menampilkan detail menu
   void _showMenuDetails(Menu menu) {
     showModalBottomSheet(
       context: context,
@@ -102,15 +109,28 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Implement add to cart functionality here
-                          Navigator.pop(context);
-                        },
-                        child: Text('Add to Cart'),
+                    BlocProvider(
+                      create: (context) => cartCubit,
+                      child: Center(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.pink,
+                          ),
+                          onPressed: () {
+                            // Implement add to cart functionality here
+                            final selectedItem = menu;
+                            debugPrint("$selectedItem");
+                            cartCubit.addToCart(menu);
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            'Add to Cart',
+                            style: GoogleFonts.poppins(
+                                fontSize: 15, color: Colors.white),
+                          ),
+                        ),
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
@@ -122,17 +142,17 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
   }
 
   void _navigateToCart() {
-    // Implement navigation to cart page
+    //navigation to cart page
     Navigator.push(
       context,
-      MaterialPageRoute(
-          builder: (context) =>
-              CartScreen()), // Replace with your cart page widget
+      MaterialPageRoute(builder: (context) => CartScreen()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authCubit = BlocProvider.of<AuthCubit>(context);
+    // final cartCubit = BlocProvider.of<CartCubit>(context);
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -149,28 +169,26 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
-              DrawerHeader(
+              const DrawerHeader(
                 decoration: BoxDecoration(
                   color: Color.fromARGB(255, 255, 204, 229),
                 ),
                 child: Text(
                   'Berry Happy',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
-              // ListTile(
-              //   //combination with list view to make items organized
-              //   title: const Text('Owner Screen'),
-              //   onTap: () {
-              //     Navigator.push(
-              //         context,
-              //         MaterialPageRoute(
-              //             builder: (context) => const DashboardOwner()));
-              //   },
-              // ),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text("Logout"),
+                onTap: () {
+                  authCubit.logout();
+                  Navigator.pushReplacementNamed(context, '/login-screen');
+                },
+              ),
             ],
           ),
         ),
@@ -181,7 +199,7 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
               children: [
                 const SizedBox(height: 20),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: CustomSearchBox(
                     controller: _searchController,
                     onChanged: (value) => _fetchData(currentPage),
@@ -189,6 +207,7 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
                     hintText: 'Search',
                   ),
                 ),
+                const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
@@ -201,8 +220,7 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
                       children: [
                         const CircleAvatar(
                           radius: 30,
-                          backgroundImage: AssetImage(
-                              'assets/images/logo.png'), // Add your image asset here
+                          backgroundImage: AssetImage('assets/images/logo.png'),
                         ),
                         const SizedBox(width: 10),
                         Column(
@@ -236,7 +254,7 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
                   padding: const EdgeInsets.all(0),
                   margin: const EdgeInsets.all(0),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 255, 204, 229),
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: FutureBuilder<List<Menu>>(
@@ -250,69 +268,86 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
                           itemCount: data.length,
                           itemBuilder: (context, index) {
                             final item = data[index];
-                            return InkWell(
-                              onTap: () => _showMenuDetails(item),
-                              child: Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.menuName,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 20,
-                                              color: const Color.fromARGB(
-                                                  255, 36, 31, 31),
-                                              fontWeight: FontWeight.bold,
+                            return Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: InkWell(
+                                onTap: () => _showMenuDetails(item),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(15.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.menuName,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 20,
+                                                color: const Color.fromARGB(
+                                                    255, 36, 31, 31),
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                          ),
-                                          Text(
-                                            'Rp. ${item.menuPrice}',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              color: const Color.fromARGB(
-                                                  255, 36, 31, 31),
-                                              fontWeight: FontWeight.bold,
+                                            Text(
+                                              'Rp. ${item.menuPrice}',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 16,
+                                                color: const Color.fromARGB(
+                                                    255, 36, 31, 31),
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                          ),
-                                          Text(
-                                            item.descMenu,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              color: const Color.fromARGB(
-                                                  255, 36, 31, 31),
-                                              fontWeight: FontWeight.normal,
+                                            Text(
+                                              item.descMenu,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                                color: const Color.fromARGB(
+                                                    255, 36, 31, 31),
+                                                fontWeight: FontWeight.normal,
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    if (item.imageUrl != null)
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 16.0),
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          child: Image.network(
-                                            fit: BoxFit.cover,
-                                            width: 100,
-                                            height: 100,
-                                            Uri.parse(
-                                                    '${Endpoints.baseUAS}/static/storages/${item.imageUrl!}')
-                                                .toString(),
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
-                                                    const Icon(Icons.error),
-                                          ),
+                                          ],
                                         ),
                                       ),
-                                  ],
+                                      if (item.imageUrl != null)
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 16.0),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: Image.network(
+                                              fit: BoxFit.cover,
+                                              width: 100,
+                                              height: 100,
+                                              Uri.parse(
+                                                      '${Endpoints.baseUAS}/static/storages/${item.imageUrl!}')
+                                                  .toString(),
+                                              errorBuilder: (context, error,
+                                                      stackTrace) =>
+                                                  const Icon(Icons.error),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             );
@@ -333,8 +368,7 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
                       ElevatedButton(
                         onPressed: _decrementPage,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Colors.pink, // Mengatur warna tombol menjadi pink
+                          backgroundColor: Colors.pink,
                         ),
                         child: Text(
                           "Previous Page",
@@ -346,8 +380,7 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
                       ElevatedButton(
                         onPressed: _incrementPage,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Colors.pink, // Mengatur warna tombol menjadi pink
+                          backgroundColor: Colors.pink,
                         ),
                         child: Text(
                           "Next Page",

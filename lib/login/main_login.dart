@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:berry_happy/components/assets_image_widget.dart';
 import 'package:berry_happy/dashboard/dashboard_consumer.dart';
-import 'package:berry_happy/dashboard/dashboard_owner.dart';  // Import the owner dashboard screen
+import 'package:berry_happy/dashboard/dashboard_owner.dart'; 
 import 'package:berry_happy/cubit/cubit/auth_cubit.dart';
 import 'package:berry_happy/dto/login.dart';
 import 'package:berry_happy/services/data_service.dart';
@@ -125,6 +125,11 @@ class _MainLoginState extends State<MainLogin> {
                   textInputAction: TextInputAction.done,
                   obscureText: true,
                   decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          width: 1.0, color: Color.fromARGB(255, 102, 7, 128)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: const BorderSide(
                           width: 1.0, color: Color.fromARGB(255, 102, 7, 128)),

@@ -1,9 +1,11 @@
 import 'package:berry_happy/cart/cart_screen.dart';
+import 'package:berry_happy/cubit/cart/cart_cubit.dart';
 import 'package:berry_happy/cubit/cubit/auth_cubit.dart';
 // import 'package:berry_happy/cart/payment_screen.dart';
 import 'package:berry_happy/dashboard/dashboard_consumer.dart';
 import 'package:berry_happy/dashboard/dashboard_owner.dart';
 import 'package:berry_happy/launch/launch_screen.dart';
+import 'package:berry_happy/login/login_screen.dart';
 import 'package:berry_happy/login/main_login.dart';
 import 'package:berry_happy/menu/add_menu.dart';
 import 'package:berry_happy/menu/edit_menu.dart';
@@ -29,7 +31,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider<AuthCubit>(create: (context) => AuthCubit())],
+      providers: [
+        BlocProvider<AuthCubit>(create: (context) => AuthCubit()),
+        BlocProvider<CartCubit>(create: (context) => CartCubit())
+      ],
       child: MaterialApp(
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
@@ -39,8 +44,7 @@ class MyApp extends StatelessWidget {
         ),
         home: const LaunchScreen(),
         routes: {
-          // '/dashboard-owner': (context) => const DashboardOwner(),
-          // '/payment': (context) => const PaymentScreen(),
+          '/login-screen': (context) => const LoginScreen(),
           '/cart': (context) => const CartScreen(),
           '/main-login': (context) => const MainLogin(),
           '/signup-screen': (context) => const SignUp(),
@@ -49,8 +53,7 @@ class MyApp extends StatelessWidget {
           '/add-menu': (context) => const AddMenu(),
           '/dashboard-consumer': (context) =>
               AuthWrapper(child: DashboardConsumer()),
-          '/dashboard-owner': (context) =>
-              AuthWrapper(child: DashboardOwner()),
+          '/dashboard-owner': (context) => AuthWrapper(child: DashboardOwner()),
         },
       ),
     );
@@ -61,28 +64,18 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int activeIndex =
-      0; //var use to save active screen index, initialize by 0 meanns that the fisrt screen in list  screens is set as default.
-  // int _selectedIndex = 0;
+  int activeIndex = 0;
 
   final List<Widget> screens = [
     //a list of widget objects that represent the various screens available in the application.
-    const DashboardConsumer(), //index 0
-    const ConsumerProfile(), //index 1
-    const SettingScreen(), //index 2
-    // const PaymentWidget(),
+    const DashboardConsumer(),
+    const ConsumerProfile(),
+    const SettingScreen(),
   ];
-
-  // void _onItemTapped(int index) {//method called when user on tap item in navigation
-  //   setState(() {//to update the state index
-  //     activeIndex = index;//active index will updated according to the idex selected
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -205,16 +198,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         builder: (context) => const PaymentWidget()));
               },
             ),
-            // ListTile(
-            //   //combination with list view to make items organized
-            //   title: const Text('Owner Screen'),
-            //   onTap: () {
-            //     Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //             builder: (context) => const DashboardOwner()));
-            //   },
-            // ),
           ],
         )));
   }
