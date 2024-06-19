@@ -55,7 +55,7 @@ class _DashboardOwnerState extends State<DashboardOwner> {
     final authCubit = BlocProvider.of<AuthCubit>(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 255, 204, 229),
+        backgroundColor: Color.fromARGB(255, 0, 0, 0),
         title: Text('Berry Happy'),
       ),
       drawer: Drawer(
