@@ -24,4 +24,6 @@ class Menu {
         kategori: json['kategori'] as String, // Parsing kategori dari JSON
         imageUrl: json['img'] as String,
       );
+
+  get price => null;
 }

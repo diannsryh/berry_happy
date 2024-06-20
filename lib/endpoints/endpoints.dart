@@ -1,5 +1,5 @@
 class Endpoints {
-  static const String host = "192.168.88.120";
+  static const String host = "192.168.248.120";
   // static const String urlUAS = ' http://192.168.184.120:5000';
 
   static const String baseUAS = "http://$host:5000";

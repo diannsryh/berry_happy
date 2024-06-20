@@ -1,24 +1,26 @@
-part of 'cart_cubit.dart';
+// part of 'cart_cubit.dart';
 
-@immutable
-abstract class CartState extends Equatable {
-  const CartState();
+// @immutable
+// abstract class CartState extends Equatable {
+//   const CartState();
 
-  @override
-  List<Object?> get props => [];
-}
+//   @override
+//   List<Object?> get props => [];
 
-@immutable
-final class CartInitial extends CartState {
-  const CartInitial();
-}
+//   get selectedItems => null;
+// }
 
-@immutable
-class SelectedItems extends CartState {
-  final List<Menu> selectedItems;
+// @immutable
+// final class CartInitial extends CartState {
+//   const CartInitial();
+// }
 
-  const SelectedItems(this.selectedItems);
+// @immutable
+// class SelectedItems extends CartState {
+//   final List<Menu> selectedItems;
 
-  @override
-  List<Object?> get props => [selectedItems];
-}
+//   const SelectedItems(this.selectedItems);
+
+//   @override
+//   List<Object?> get props => [selectedItems];
+// }

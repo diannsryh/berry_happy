@@ -1,13 +1,14 @@
-import 'package:berry_happy/cart/cart_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:berry_happy/components/customsearch.dart';
 import 'package:berry_happy/cubit/cart/cart_cubit.dart';
 import 'package:berry_happy/cubit/cubit/auth_cubit.dart';
 import 'package:berry_happy/dto/menu.dart';
 import 'package:berry_happy/endpoints/endpoints.dart';
 import 'package:berry_happy/services/data_service.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:berry_happy/cart/cart_screen.dart'; // Import CartScreen
+import 'package:berry_happy/cubit/cart/cart_item.dart'; // Import CartItem
 
 class DashboardConsumer extends StatefulWidget {
   const DashboardConsumer({Key? key}) : super(key: key);
@@ -21,8 +22,6 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
   late TextEditingController _searchController;
   int currentPage = 1;
 
-  final cartCubit = CartCubit();
-
   @override
   void initState() {
     super.initState();
@@ -33,11 +32,9 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
   @override
   void dispose() {
     _searchController.dispose();
-    cartCubit.close();
     super.dispose();
   }
 
-//pagenation
   void _fetchData(int page) {
     setState(() {
       _menu = DataService.fetchMenu1(currentPage, _searchController.text);
@@ -60,7 +57,6 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
     }
   }
 
-//method untuk menampilkan detail menu
   void _showMenuDetails(Menu menu) {
     showModalBottomSheet(
       context: context,
@@ -110,24 +106,17 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
                     ),
                     const SizedBox(height: 20),
                     BlocProvider(
-                      create: (context) => cartCubit,
+                      create: (context) => CartCubit(),
                       child: Center(
                         child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.pink,
-                          ),
                           onPressed: () {
-                            // Implement add to cart functionality here
-                            final selectedItem = menu;
-                            debugPrint("$selectedItem");
-                            cartCubit.addToCart(menu);
+                            final cartCubit =
+                                BlocProvider.of<CartCubit>(context);
+                            cartCubit
+                                .addToCart(menu); // Ensure menu includes price
                             Navigator.pop(context);
                           },
-                          child: Text(
-                            'Add to Cart',
-                            style: GoogleFonts.poppins(
-                                fontSize: 15, color: Colors.white),
-                          ),
+                          child: Text('Add to Cart'),
                         ),
                       ),
                     )
@@ -142,7 +131,6 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
   }
 
   void _navigateToCart() {
-    //navigation to cart page
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => CartScreen()),
@@ -152,247 +140,235 @@ class _DashboardConsumerState extends State<DashboardConsumer> {
   @override
   Widget build(BuildContext context) {
     final authCubit = BlocProvider.of<AuthCubit>(context);
-    // final cartCubit = BlocProvider.of<CartCubit>(context);
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Color.fromARGB(255, 255, 204, 229),
-          title: Text('Berry Happy'),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.shopping_cart),
-              onPressed: _navigateToCart,
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 255, 204, 229),
+        title: Text('Berry Happy'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: _navigateToCart,
+          ),
+        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 255, 204, 229),
+              ),
+              child: Text(
+                'Berry Happy',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Logout"),
+              onTap: () {
+                authCubit.logout();
+                Navigator.pushReplacementNamed(context, '/login-screen');
+              },
             ),
           ],
         ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              const DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Color.fromARGB(255, 255, 204, 229),
-                ),
-                child: Text(
-                  'Berry Happy',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold),
+      ),
+      body: SingleChildScrollView(
+        child: Container(
+          color: const Color.fromARGB(255, 255, 204, 229),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: CustomSearchBox(
+                  controller: _searchController,
+                  onChanged: (value) => _fetchData(currentPage),
+                  onClear: () => _fetchData(currentPage),
+                  hintText: 'Search',
                 ),
               ),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text("Logout"),
-                onTap: () {
-                  authCubit.logout();
-                  Navigator.pushReplacementNamed(context, '/login-screen');
-                },
-              ),
-            ],
-          ),
-        ),
-        body: SingleChildScrollView(
-          child: Container(
-            color: const Color.fromARGB(255, 255, 204, 229),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: CustomSearchBox(
-                    controller: _searchController,
-                    onChanged: (value) => _fetchData(currentPage),
-                    onClear: () => _fetchData(currentPage),
-                    hintText: 'Search',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    padding: const EdgeInsets.all(20.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 30,
-                          backgroundImage: AssetImage('assets/images/logo.png'),
-                        ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Berry Happy Cafe',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                            Row(
-                              children: List.generate(5, (index) {
-                                return Icon(
-                                  Icons.star,
-                                  color:
-                                      index < 4 ? Colors.yellow : Colors.grey,
-                                  size: 20,
-                                );
-                              }),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(0),
-                  margin: const EdgeInsets.all(0),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(20.0),
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 255, 204, 229),
-                    borderRadius: BorderRadius.circular(10.0),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15.0),
                   ),
-                  child: FutureBuilder<List<Menu>>(
-                    future: _menu,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final data = snapshot.data!;
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: data.length,
-                          itemBuilder: (context, index) {
-                            final item = data[index];
-                            return Container(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 5, horizontal: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 2,
-                                    blurRadius: 5,
-                                    offset: Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: InkWell(
-                                onTap: () => _showMenuDetails(item),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(15.0),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              item.menuName,
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 20,
-                                                color: const Color.fromARGB(
-                                                    255, 36, 31, 31),
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              'Rp. ${item.menuPrice}',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 16,
-                                                color: const Color.fromARGB(
-                                                    255, 36, 31, 31),
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              item.descMenu,
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 14,
-                                                color: const Color.fromARGB(
-                                                    255, 36, 31, 31),
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      if (item.imageUrl != null)
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 16.0),
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: Image.network(
-                                              fit: BoxFit.cover,
-                                              width: 100,
-                                              height: 100,
-                                              Uri.parse(
-                                                      '${Endpoints.baseUAS}/static/storages/${item.imageUrl!}')
-                                                  .toString(),
-                                              errorBuilder: (context, error,
-                                                      stackTrace) =>
-                                                  const Icon(Icons.error),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('${snapshot.error}'));
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ElevatedButton(
-                        onPressed: _decrementPage,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pink,
-                        ),
-                        child: Text(
-                          "Previous Page",
-                          style: GoogleFonts.poppins(
-                              fontSize: 15, color: Colors.white),
-                        ),
+                      const CircleAvatar(
+                        radius: 30,
+                        backgroundImage: AssetImage('assets/images/logo.png'),
                       ),
-                      const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: _incrementPage,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pink,
-                        ),
-                        child: Text(
-                          "Next Page",
-                          style: GoogleFonts.poppins(
-                              fontSize: 15, color: Colors.white),
-                        ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Berry Happy Cafe',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Row(
+                            children: List.generate(5, (index) {
+                              return Icon(
+                                Icons.star,
+                                color: index < 4 ? Colors.yellow : Colors.grey,
+                                size: 20,
+                              );
+                            }),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(0),
+                margin: const EdgeInsets.all(0),
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 255, 204, 229),
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: FutureBuilder<List<Menu>>(
+                  future: _menu,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      final data = snapshot.data!;
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          final item = data[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10.0),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 2,
+                                  blurRadius: 5,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: InkWell(
+                              onTap: () => _showMenuDetails(item),
+                              child: Padding(
+                                padding: const EdgeInsets.all(15.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.menuName,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 20,
+                                              color: const Color.fromARGB(
+                                                  255, 36, 31, 31),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Rp. ${item.menuPrice}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: const Color.fromARGB(
+                                                  255, 36, 31, 31),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            item.descMenu,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              color: const Color.fromARGB(
+                                                  255, 36, 31, 31),
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (item.imageUrl != null)
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 16.0),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: Image.network(
+                                            fit: BoxFit.cover,
+                                            width: 100,
+                                            height: 100,
+                                            Uri.parse(
+                                                    '${Endpoints.baseUAS}/static/storages/${item.imageUrl!}')
+                                                .toString(),
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    const Icon(Icons.error),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('${snapshot.error}'));
+                    }
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _decrementPage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink,
+                      ),
+                      child: const Text('Prev'),
+                    ),
+                    ElevatedButton(
+                      onPressed: _incrementPage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink,
+                      ),
+                      child: const Text('Next'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
           ),
         ),
       ),

@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         home: const LaunchScreen(),
         routes: {
           '/login-screen': (context) => const LoginScreen(),
-          '/cart': (context) => const CartScreen(),
+          '/cart': (context) => CartScreen(),
           '/main-login': (context) => const MainLogin(),
           '/signup-screen': (context) => const SignUp(),
           '/my-homepage': (context) => const MyHomePage(),
